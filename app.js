@@ -1,3 +1,4 @@
+// SkyFetch Weather Dashboard - API Integration
 const apiKey = "YOUR_API_KEY_HERE";
 const cityName = "London";
 
