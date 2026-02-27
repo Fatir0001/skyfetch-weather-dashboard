@@ -1,49 +1,70 @@
-const cityInput = document.getElementById("cityInput");
-const searchBtn = document.getElementById("searchBtn");
-const weatherContainer = document.getElementById("weatherContainer");
-const loadingDiv = document.getElementById("loading");
-const errorDiv = document.getElementById("error");
+function WeatherApp(apiKey) {
+  this.apiKey = apiKey;
+  this.currentWeatherDiv = document.getElementById("currentWeather");
+  this.forecastContainer = document.getElementById("forecastContainer");
+  this.searchBtn = document.getElementById("searchBtn");
+  this.cityInput = document.getElementById("cityInput");
 
-const API_KEY = "YOUR_API_KEY_HERE"; // put your real key
-
-async function fetchWeather(city) {
-  try {
-    loadingDiv.style.display = "block";
-    errorDiv.textContent = "";
-    weatherContainer.innerHTML = "";
-
-    if (!city.trim()) {
-      throw new Error("City name cannot be empty");
-    }
-
-    const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
-    );
-
-    if (!response.ok) {
-      throw new Error("City not found");
-    }
-
-    const data = await response.json();
-
-    weatherContainer.innerHTML = `
-      <h2>${data.name}</h2>
-      <p>Temperature: ${data.main.temp}°C</p>
-      <p>Weather: ${data.weather[0].description}</p>
-    `;
-  } catch (error) {
-    errorDiv.textContent = error.message;
-  } finally {
-    loadingDiv.style.display = "none";
-  }
+  this.searchBtn.addEventListener("click", this.handleSearch.bind(this));
 }
 
-searchBtn.addEventListener("click", () => {
-  fetchWeather(cityInput.value);
-});
+WeatherApp.prototype.handleSearch = function() {
+  const city = this.cityInput.value;
+  if (!city) return;
 
-cityInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    fetchWeather(cityInput.value);
-  }
-});
+  const currentURL = 
+    `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${this.apiKey}&units=metric`;
+
+  const forecastURL = 
+    `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${this.apiKey}&units=metric`;
+
+  Promise.all([
+    fetch(currentURL),
+    fetch(forecastURL)
+  ])
+  .then(responses => Promise.all(responses.map(res => res.json())))
+  .then(data => {
+    const currentData = data[0];
+    const forecastData = data[1];
+
+    this.displayCurrentWeather(currentData);
+    this.displayForecast(forecastData);
+  })
+  .catch(error => {
+    alert("City not found");
+  });
+};
+
+WeatherApp.prototype.displayCurrentWeather = function(data) {
+  this.currentWeatherDiv.innerHTML = `
+    <h3>${data.name}</h3>
+    <p>Temperature: ${data.main.temp} °C</p>
+    <p>${data.weather[0].description}</p>
+  `;
+};
+
+WeatherApp.prototype.displayForecast = function(data) {
+  this.forecastContainer.innerHTML = "";
+
+  const dailyData = data.list.filter(item => 
+    item.dt_txt.includes("12:00:00")
+  );
+
+  dailyData.slice(0, 5).forEach(day => {
+    const card = document.createElement("div");
+    card.className = "forecast-card";
+
+    const date = new Date(day.dt_txt).toDateString();
+
+    card.innerHTML = `
+      <h4>${date}</h4>
+      <p>${day.main.temp} °C</p>
+      <p>${day.weather[0].description}</p>
+      <img src="https://openweathermap.org/img/wn/${day.weather[0].icon}.png">
+    `;
+
+    this.forecastContainer.appendChild(card);
+  });
+};
+
+new WeatherApp("YOUR_API_KEY");
