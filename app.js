@@ -1,19 +1,70 @@
-const apiKey = "YOUR_API_KEY_HERE";
-const cityName = "London";
+function WeatherApp(apiKey) {
+  this.apiKey = apiKey;
+  this.currentWeatherDiv = document.getElementById("currentWeather");
+  this.forecastContainer = document.getElementById("forecastContainer");
+  this.searchBtn = document.getElementById("searchBtn");
+  this.cityInput = document.getElementById("cityInput");
 
-const url = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}&units=metric`;
+  this.searchBtn.addEventListener("click", this.handleSearch.bind(this));
+}
 
-axios.get(url)
-    .then(function(response) {
-        const data = response.data;
+WeatherApp.prototype.handleSearch = function() {
+  const city = this.cityInput.value;
+  if (!city) return;
 
-        document.getElementById("city").textContent = data.name;
-        document.getElementById("temperature").textContent = "Temperature: " + data.main.temp + "°C";
-        document.getElementById("description").textContent = "Condition: " + data.weather[0].description;
+  const currentURL = 
+    `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${this.apiKey}&units=metric`;
 
-        const iconCode = data.weather[0].icon;
-        document.getElementById("icon").src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
-    })
-    .catch(function(error) {
-        console.error("Error fetching weather data:", error);
-    });
+  const forecastURL = 
+    `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${this.apiKey}&units=metric`;
+
+  Promise.all([
+    fetch(currentURL),
+    fetch(forecastURL)
+  ])
+  .then(responses => Promise.all(responses.map(res => res.json())))
+  .then(data => {
+    const currentData = data[0];
+    const forecastData = data[1];
+
+    this.displayCurrentWeather(currentData);
+    this.displayForecast(forecastData);
+  })
+  .catch(error => {
+    alert("City not found");
+  });
+};
+
+WeatherApp.prototype.displayCurrentWeather = function(data) {
+  this.currentWeatherDiv.innerHTML = `
+    <h3>${data.name}</h3>
+    <p>Temperature: ${data.main.temp} °C</p>
+    <p>${data.weather[0].description}</p>
+  `;
+};
+
+WeatherApp.prototype.displayForecast = function(data) {
+  this.forecastContainer.innerHTML = "";
+
+  const dailyData = data.list.filter(item => 
+    item.dt_txt.includes("12:00:00")
+  );
+
+  dailyData.slice(0, 5).forEach(day => {
+    const card = document.createElement("div");
+    card.className = "forecast-card";
+
+    const date = new Date(day.dt_txt).toDateString();
+
+    card.innerHTML = `
+      <h4>${date}</h4>
+      <p>${day.main.temp} °C</p>
+      <p>${day.weather[0].description}</p>
+      <img src="https://openweathermap.org/img/wn/${day.weather[0].icon}.png">
+    `;
+
+    this.forecastContainer.appendChild(card);
+  });
+};
+
+new WeatherApp("YOUR_API_KEY");
