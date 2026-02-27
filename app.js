@@ -1,20 +1,49 @@
-// SkyFetch Weather Dashboard - API Integration
-const apiKey = "YOUR_API_KEY_HERE";
-const cityName = "London";
+const cityInput = document.getElementById("cityInput");
+const searchBtn = document.getElementById("searchBtn");
+const weatherContainer = document.getElementById("weatherContainer");
+const loadingDiv = document.getElementById("loading");
+const errorDiv = document.getElementById("error");
 
-const url = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}&units=metric`;
+const API_KEY = "YOUR_API_KEY_HERE"; // put your real key
 
-axios.get(url)
-    .then(function(response) {
-        const data = response.data;
+async function fetchWeather(city) {
+  try {
+    loadingDiv.style.display = "block";
+    errorDiv.textContent = "";
+    weatherContainer.innerHTML = "";
 
-        document.getElementById("city").textContent = data.name;
-        document.getElementById("temperature").textContent = "Temperature: " + data.main.temp + "°C";
-        document.getElementById("description").textContent = "Condition: " + data.weather[0].description;
+    if (!city.trim()) {
+      throw new Error("City name cannot be empty");
+    }
 
-        const iconCode = data.weather[0].icon;
-        document.getElementById("icon").src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
-    })
-    .catch(function(error) {
-        console.error("Error fetching weather data:", error);
-    });
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
+    );
+
+    if (!response.ok) {
+      throw new Error("City not found");
+    }
+
+    const data = await response.json();
+
+    weatherContainer.innerHTML = `
+      <h2>${data.name}</h2>
+      <p>Temperature: ${data.main.temp}°C</p>
+      <p>Weather: ${data.weather[0].description}</p>
+    `;
+  } catch (error) {
+    errorDiv.textContent = error.message;
+  } finally {
+    loadingDiv.style.display = "none";
+  }
+}
+
+searchBtn.addEventListener("click", () => {
+  fetchWeather(cityInput.value);
+});
+
+cityInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    fetchWeather(cityInput.value);
+  }
+});

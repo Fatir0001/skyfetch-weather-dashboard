@@ -1,13 +1,13 @@
-body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background-color: #f4f4f4;
+.search-container {
+  margin-bottom: 20px;
 }
 
-#weather {
-    background: white;
-    padding: 20px;
-    margin: 20px auto;
-    width: 300px;
-    border-radius: 10px;
+button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+#loading {
+  font-weight: bold;
+  margin-top: 10px;
 }
