@@ -1,20 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>SkyFetch Weather Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkyFetch Weather Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <h1>SkyFetch Weather Dashboard</h1>
 
-    <div id="weather">
-        <h2 id="city"></h2>
-        <p id="temperature"></p>
-        <p id="description"></p>
-        <img id="icon" />
+  <div class="container">
+    <h1>🌤 SkyFetch Weather Dashboard</h1>
+
+    <div class="search-box">
+      <input type="text" id="city-input" placeholder="Enter city name..." />
+      <button id="search-btn">Search</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="script.js"></script>
+    <!-- Recent Searches -->
+    <div class="recent-container">
+      <h3>Recent Searches</h3>
+      <div id="recent-searches"></div>
+    </div>
+
+    <!-- Current Weather -->
+    <div id="weather-result" class="weather-card"></div>
+
+    <!-- 5 Day Forecast -->
+    <h2 id="forecast-title"></h2>
+    <div id="forecast-container" class="forecast-container"></div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
